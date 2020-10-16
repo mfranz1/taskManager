@@ -1,0 +1,13 @@
+<div class="centered-content">
+    <div class="model-box">
+        <h1 class="title">
+            Create a new category
+        </h1>
+        <input #catTitleInput class="input" type="text" size="42" placeholder="Enter a Category">
+        <br><br>
+        <div class="buttons">
+            <button class="button" routerLink="/">Cancel</button>
+            <button class="button" (click)="createCat(catTitleInput.value)" routerLink="/">Create</button>
+        </div>        
+    </div>
+</div>
