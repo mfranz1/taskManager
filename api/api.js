@@ -1,93 +1,76 @@
 const express=require('express');
 const app=express();
+const MongoClient = require('mongodb').MongoClient;
+const url = 'mongodb://root:example@localhost:27017';
 const bodyParser=require('body-parser');
-const {mongoose} = require('./config/mongoose');
+const ObjectID = require('mongodb').ObjectID;
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 
-//Mongoose models
-const { Cat } = require('./models/cat.model');
-const { Task } = require('./models/tasks.model');
- 
-//returns array of categorys
-app.get('/db/task-service/categories',(req,res)=>{
-    Cat.find({}).then((categorys)=>{
-        res.send(categorys);
+MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
+    if (err) throw err;
+    
+    process.on('unhandledRejection', (reason, promise) => {
+      console.log('Unhandled Rejection at:', promise, 'reason:', reason);
+      // Application specific logging, throwing an error, or other logic here
     });
-})
-
-//adds a new category
-app.post('/db/task-service/categories',(req,res)=>{
-    let title = req.body.title;
-
-    let newCat = new Cat({
-        title
-    });
-    newCat.save().then((catDoc)=>{
-        res.send(catDoc);
+    app.post('/db/task-service/tasks', (req,res,next)=>{
+        var task={
+            _id: req.body.ObjectID,
+            text: req.body.text,
+            completed: req.body.completed
+        };
+        client.db('task-service').collection("tasks").insertOne(task, (err, result) =>{
+            if(err){
+                console.log(err);
+            }
+    
+            res.send('task added successfully');
+        })
     })
-})
-
-//Updates categories
-app.patch('/db/task-service/categories/:_id',(req,res)=>{
-    Cat.findOneAndUpdate({_id: req.params.id},{
-        $set: req.body
-    }).then(()=>{
-        res.sendStatus(200);
+    
+    app.get('/db/task-service/tasks', (req,res)=>{
+        client.db('task-service').collection("tasks").find().toArray((err,results)=>{
+            res.send(results)
+        });
     });
-});
-
-//delete category
-app.delete('/db/task-service/categories/:_id',(req,res)=>{
-    Cat.findOneAndRemove({
-        _id: req.params.id
-    }).then((removedCatDoc)=>{
-        res.send(removedListDoc);
-    })
-})
-
-//Get all tasks for a category
-app.get('/db/task-service/tasks',(req,res)=>{
-    Task.find({
-        _catId: req.params.catId
-    }).then((tasks)=>{
-        res.send(tasks);
-    })
-});
-
-//get a single task
-app.post('/db/task-service/tasks/:_id',(req,res) => {
-    let newTask = new Task({
-        title: req.body.title,
-        _catId: req.params.catId
+    
+    app.get('/db/task-service/tasks:_id', (req,res,next)=>{
+        if(err){
+            throw err;
+        }
+        let _id=ObjectID(req.params._id);
+        client.db('task-service').collection("tasks").find(_id).toArray((err,results)=>{
+            if(err){
+                throw err;
+            }
+            res.send(results)
+        });
     });
-    newTask.save().then((newTaskDoc)=>{
-        res.send(newTaskDoc);
+    
+    app.put('/db/task-service/tasks:_id',(req,res,next)=>{
+        let id={
+            _id: ObjectID(req.params.id)
+        };
+        client.db('task-service').collection("tasks").updateOne({_id: id}, {$set:{'text':req.body.text, 'completed':req.body.completed}}, (err,result)=>{
+            if(err) {
+                throw err;
+              }
+            res.send('task updated sucessfully');
+        });
     });
-});
+    app.delete('/db/tasks-service/tasks:_id',(req,res,next)=>{
+        let _id=ObjectID(req.params.id);
+        client.db('task-service').collection("tasks").deleteOne(_id, (err,result)=>{
+            if(err){
+                throw err;
+            }
 
-//update exisiting task
-app.patch('/db/task-service/tasks/:_id',(req,res)=>{
-    Task.findOneAndUpdate({
-        _id:req.params.taskid,
-        _catId:req.params.catId,
-    },{
-        $set: req.body
-    }).then(()=>{
-        res.sendStatus(200);
+            res.send('task deleted');
+        })
     })
-})
-
-//delete task
-app.delete('/db/task-service/tasks/:_id',(req,res)=>{
-    Task.findOneAndRemove({
-    _id:req.params.taskId,
-    _listedId:req.params.listId
-    }).then((removedTaskDoc)=>{
-        res.send(removedTaskDoc);
+    app.listen(3000, ()=>{
+        console.log("running from port 27017");
     })
 });
-
-app.listen(3000, ()=>{
-    console.log("running on port 3000");
-})
