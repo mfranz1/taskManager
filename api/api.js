@@ -4,9 +4,13 @@ const MongoClient = require('mongodb').MongoClient;
 const url = 'mongodb://root:example@localhost:27017';
 const bodyParser=require('body-parser');
 const ObjectID = require('mongodb').ObjectID;
+const cors = require('cors');
+
+const PORT = 3000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cors({ origin: true, credentials: true }));
 
 MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
     if (err) throw err;
@@ -15,62 +19,45 @@ MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true }, fu
       console.log('Unhandled Rejection at:', promise, 'reason:', reason);
       // Application specific logging, throwing an error, or other logic here
     });
-    app.post('/db/task-service/tasks', (req,res,next)=>{
-        var task={
-            _id: req.body.ObjectID,
-            text: req.body.text,
-            completed: req.body.completed
-        };
-        client.db('task-service').collection("tasks").insertOne(task, (err, result) =>{
-            if(err){
-                console.log(err);
-            }
-    
+    app.post('/add', (req,res,next)=>{
+        let task = {
+            _id:req.params._id,
+            text:req.body,
+            completed:"false"
+        }
+        try{
+            client.db('task-service').collection("tasks").insertOne(task);
             res.send('task added successfully');
-        })
+        }
+        catch(error){
+            console.log(error);
+        }
     })
     
-    app.get('/db/task-service/tasks', (req,res)=>{
+    app.get('/tasks', (req,res)=>{
         client.db('task-service').collection("tasks").find().toArray((err,results)=>{
             res.send(results)
         });
     });
-    
-    app.get('/db/task-service/tasks:_id', (req,res,next)=>{
-        if(err){
-            throw err;
-        }
-        let _id=ObjectID(req.params._id);
-        client.db('task-service').collection("tasks").find(_id).toArray((err,results)=>{
-            if(err){
-                throw err;
-            }
-            res.send(results)
-        });
-    });
-    
-    app.put('/db/task-service/tasks:_id',(req,res,next)=>{
-        let id={
-            _id: ObjectID(req.params.id)
-        };
-        client.db('task-service').collection("tasks").updateOne({_id: id}, {$set:{'text':req.body.text, 'completed':req.body.completed}}, (err,result)=>{
-            if(err) {
-                throw err;
-              }
-            res.send('task updated sucessfully');
-        });
-    });
-    app.delete('/db/tasks-service/tasks:_id',(req,res,next)=>{
-        let _id=ObjectID(req.params.id);
-        client.db('task-service').collection("tasks").deleteOne(_id, (err,result)=>{
-            if(err){
-                throw err;
-            }
 
-            res.send('task deleted');
-        })
+    app.delete('/deleteTask',(req,res,next)=>{
+        let _id=Object(req.params.id);
+        /*if(req.params._id === undefined){
+            res.sendStatus(404);
+        }*/
+        try{
+            client.db('task-service').collection("tasks").deleteOne(_id, (err,result)=>{
+                if(err){
+                    throw err;
+                }
+                res.send('task deleted');
+            })
+        }
+        catch(error){
+            res.send(404);
+        }
     })
-    app.listen(3000, ()=>{
-        console.log("running from port 27017");
+    app.listen(PORT, ()=>{
+        console.log(`running from on ${PORT}`);
     })
 });

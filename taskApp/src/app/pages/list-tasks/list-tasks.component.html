@@ -11,7 +11,7 @@
   
             <div class="col-1"></div> 
   
-            <button (click)="addToList()"  
+            <button (click)="createTask()"  
                 class="btn btn-light text-success"> 
                 ADD TASK 
             </button> 
@@ -30,9 +30,9 @@
                     justify-content-center align-items-center 
                     text-light h3"> 
   
-            <div class="col-9 text-light h3">{{x}}</div> 
+            <div class="col-9 text-light h3">{{x.text}}</div> 
   
-            <input (click)="deleteTask(index)" type="button"
+            <input (click)="removeTask()" type="button"
                 value="Delete" class="col-2 btn btn-danger"> 
         </div> 
           
