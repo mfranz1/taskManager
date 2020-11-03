@@ -22,12 +22,13 @@ MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true }, fu
     app.post('/add', (req,res,next)=>{
         let task = {
             _id:req.params._id,
-            text:req.body,
+            text:req.body.text,
             completed:"false"
         }
+        console.log(req.body);
         try{
             client.db('task-service').collection("tasks").insertOne(task);
-            res.send('task added successfully');
+            res.sendStatus(201);
         }
         catch(error){
             console.log(error);

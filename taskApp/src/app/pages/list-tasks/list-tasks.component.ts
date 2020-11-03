@@ -12,8 +12,7 @@ export class ListTasksComponent implements OnInit{
   /* An empty array that is responsible 
   to add a division */
   public items; 
-  public input:string;
-  public newTask;
+  public newTask:string;
 
   constructor(private taskService:TaskService){}
 
@@ -21,11 +20,15 @@ export class ListTasksComponent implements OnInit{
     let test;
     this.taskService.getTasks().subscribe(variable=>{
       this.items=variable;
+      console.log(variable);
     });
   }
   createTask(){
-    this.taskService.addTask(this.input).toPromise().then(async()=>{
-      this.items=await this.taskService.getTasks();
+    this.taskService.addTask(this.newTask).toPromise().then(async()=>{
+      this.items=await this.taskService.getTasks().toPromise();
+    }).catch(async(error)=>{
+      this.items=await this.taskService.getTasks().toPromise();
+      console.log(error);
     })
   } 
   removeTask(){
