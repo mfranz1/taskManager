@@ -25,7 +25,11 @@ export class ListTasksComponent implements OnInit{
   }
   createTask(){
     this.taskService.addTask(this.newTask).toPromise().then(async()=>{
-      this.items=await this.taskService.getTasks().toPromise();
+      this.newTask=null;
+      this.taskService.getTasks().subscribe(items=>{
+        this.items=items;
+        console.log(items);
+      });
     }).catch(async(error)=>{
       this.items=await this.taskService.getTasks().toPromise();
       console.log(error);

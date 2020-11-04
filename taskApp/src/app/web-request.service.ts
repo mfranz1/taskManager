@@ -16,9 +16,9 @@ export class WebRequestService {
   get(url: string){
       return this.http.get(`${this.ROOT_URL}/${url}`);
   }
-  post(url: string, payload: Object){
+  post(url: string, payload: Object, responsetype: string){
     console.log(payload);
-    return this.http.post(`${this.ROOT_URL}/${url}`,payload);
+    return this.http.post(`${this.ROOT_URL}/${url}`,payload,{responseType:'text'});
   }
   delete(url: string){
     return this.http.delete(`${this.ROOT_URL}/${url}`);

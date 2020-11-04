@@ -14,7 +14,7 @@ export class TaskService {
   }
 
   addTask(task:string){
-    return this.webReqService.post('add',{text:task});
+    return this.webReqService.post('add',{text:task}, 'text');
   }
 
   deleteTask(){
